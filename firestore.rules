@@ -1,0 +1,85 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Default-deny all documents
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isPropertyOwner(propertyData) {
+      return isSignedIn() && propertyData.agentId == request.auth.uid;
+    }
+
+    function isValidProperty(data) {
+      return data.title is string && data.title.size() > 0 && data.title.size() <= 150 &&
+             data.price is number && data.price >= 0 &&
+             data.listingType in ['sale', 'rent'] &&
+             data.propertyType in ['condo', 'landed', 'apartment', 'commercial'] &&
+             data.bedrooms is number && data.bedrooms >= 0 &&
+             data.bathrooms is number && data.bathrooms >= 0 &&
+             data.floorAreaSqft is number && data.floorAreaSqft > 0 &&
+             data.address is string && data.address.size() > 0 && data.address.size() <= 200 &&
+             data.description is string && data.description.size() <= 4000 &&
+             data.agentId == request.auth.uid &&
+             data.status in ['active', 'pending', 'sold', 'rented'];
+    }
+
+    function isValidInquiry(data) {
+      return data.propertyId is string && data.propertyId.size() <= 128 &&
+             data.agentId is string && data.agentId.size() <= 128 &&
+             data.userName is string && data.userName.size() > 0 && data.userName.size() <= 100 &&
+             data.userEmail is string && data.userEmail.size() > 0 && data.userEmail.size() <= 150 &&
+             data.message is string && data.message.size() > 0 && data.message.size() <= 1000;
+    }
+
+    // Properties collection
+    match /properties/{propertyId} {
+      // Anyone can view properties on public portal
+      allow get: if true;
+      allow list: if true;
+
+      // Only signed-in agent can create property under their own UID
+      allow create: if isSignedIn() &&
+                       isValidId(propertyId) &&
+                       isValidProperty(request.resource.data);
+
+      // Only owning agent can update or delete
+      allow update: if isPropertyOwner(resource.data) &&
+                       isValidProperty(request.resource.data) &&
+                       request.resource.data.agentId == resource.data.agentId;
+
+      allow delete: if isPropertyOwner(resource.data);
+    }
+
+    // Inquiries collection
+    match /inquiries/{inquiryId} {
+      // Anyone can submit inquiry/viewing request
+      allow create: if isValidId(inquiryId) &&
+                       isValidInquiry(request.resource.data);
+
+      // Agent can view inquiries targeted to them, or prospect if logged in
+      allow get: if isSignedIn() && (
+        resource.data.agentId == request.auth.uid ||
+        (resource.data.userId != null && resource.data.userId == request.auth.uid)
+      );
+
+      allow list: if isSignedIn() && (
+        resource.data.agentId == request.auth.uid
+      );
+
+      // Agent can update status of inquiry
+      allow update: if isSignedIn() &&
+                       resource.data.agentId == request.auth.uid &&
+                       request.resource.data.agentId == resource.data.agentId;
+    }
+  }
+}

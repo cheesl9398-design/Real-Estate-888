@@ -1,0 +1,6 @@
+{
+  "name": "EstateGuru - Modern Real Estate Portal & Agent Hub",
+  "description": "Premier real estate portal inspired by PropertyGuru. Explore verified properties, advanced filters, virtual tours, and agent listing dashboard with Firebase & Google authentication.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,64 @@
+{
+  "entities": {
+    "Property": {
+      "title": "Property",
+      "description": "Real estate property listing published on the platform",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 150 },
+        "price": { "type": "number" },
+        "listingType": { "type": "string", "enum": ["sale", "rent"] },
+        "propertyType": { "type": "string", "enum": ["condo", "landed", "apartment", "commercial"] },
+        "bedrooms": { "type": "number" },
+        "bathrooms": { "type": "number" },
+        "floorAreaSqft": { "type": "number" },
+        "address": { "type": "string", "maxLength": 200 },
+        "district": { "type": "string", "maxLength": 100 },
+        "city": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 4000 },
+        "amenities": { "type": "array" },
+        "images": { "type": "array" },
+        "agentId": { "type": "string", "maxLength": 128 },
+        "agentName": { "type": "string", "maxLength": 100 },
+        "agentEmail": { "type": "string", "maxLength": 150 },
+        "agentPhone": { "type": "string", "maxLength": 30 },
+        "agentPhotoUrl": { "type": "string", "maxLength": 500 },
+        "status": { "type": "string", "enum": ["active", "pending", "sold", "rented"] },
+        "featured": { "type": "boolean" },
+        "verified": { "type": "boolean" },
+        "virtualTourUrl": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["title", "price", "listingType", "propertyType", "bedrooms", "bathrooms", "floorAreaSqft", "address", "description", "agentId", "status"]
+    },
+    "Inquiry": {
+      "title": "Inquiry",
+      "description": "Property inquiry or viewing request from interested buyer/tenant",
+      "type": "object",
+      "properties": {
+        "propertyId": { "type": "string", "maxLength": 128 },
+        "propertyTitle": { "type": "string", "maxLength": 150 },
+        "agentId": { "type": "string", "maxLength": 128 },
+        "userName": { "type": "string", "maxLength": 100 },
+        "userEmail": { "type": "string", "maxLength": 150 },
+        "userPhone": { "type": "string", "maxLength": 30 },
+        "message": { "type": "string", "maxLength": 1000 },
+        "preferredDate": { "type": "string", "maxLength": 50 },
+        "createdAt": { "type": "string" },
+        "status": { "type": "string", "enum": ["new", "contacted", "closed"] }
+      },
+      "required": ["propertyId", "agentId", "userName", "userEmail", "message"]
+    }
+  },
+  "firestore": {
+    "/properties/{propertyId}": {
+      "schema": "Property",
+      "description": "Publicly readable property listings; managed by authorized agent owners"
+    },
+    "/inquiries/{inquiryId}": {
+      "schema": "Inquiry",
+      "description": "Inquiries sent to agents by prospects; readable by corresponding agent and sender"
+    }
+  }
+}
